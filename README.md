@@ -7,7 +7,6 @@ automatically:
 |---|---|
 | [EarthPing](https://github.com/LjLies/EarthPing) | `io.github.ljlies.earthping` |
 | [WakeBridge](https://github.com/LjLies/WakeBridge) | `io.github.ljlies.wakebridge` |
-| [Fryer Clock](https://github.com/LjLies/fryer-clock) | `io.github.ljlies.fryerclock` |
 
 **Repository address:** <https://ljlies.github.io/LjL-Droid/repo>
 
@@ -85,31 +84,15 @@ base64 -w0 ~/android-keys/fdroid-repo.p12 | gh secret set FDROID_KEYSTORE --repo
 gh secret set FDROID_KEYSTORE_PASS --repo LjLies/LjL-Droid
 ```
 
-fryer-clock is private, so this workflow needs a token to read its releases. Create a
-[fine-grained personal access token](https://github.com/settings/personal-access-tokens/new):
-resource owner LjLies, **Only select repositories** → fryer-clock, permission **Contents:
-Read-only**, and the longest expiry you're comfortable with. Then:
-
-```bash
-gh secret set APPS_TOKEN --repo LjLies/LjL-Droid
-```
-
-(Or make fryer-clock public and skip the token.)
-
-In **LjLies/fryer-clock**, the release key, as in the other two apps (without them its builds
-come out unsigned and nothing is released):
-
-```bash
-base64 -w0 ~/android-keys/release.jks | gh secret set RELEASE_KEYSTORE --repo LjLies/fryer-clock
-```
-
-```bash
-gh secret set RELEASE_STORE_PASSWORD --repo LjLies/fryer-clock
-```
+Private app repositories need a token so that this workflow can read their releases: a
+[fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
+(resource owner LjLies, **Only select repositories**, permission **Contents: Read-only**), set
+with `gh secret set APPS_TOKEN --repo LjLies/LjL-Droid`. None is needed while every app in
+`apps.yml` is public.
 
 ### 6. Publish
 
-Merge the release-step changes in the three app repositories. Each one's next build on `main`
+Merge the release-step changes in the app repositories. Each one's next build on `main`
 publishes its current version as a release. Then run **Actions → Publish → Run workflow** here
 (or wait for the hourly run). The run's summary shows the "add to F-Droid" link.
 

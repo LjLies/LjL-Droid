@@ -9,4 +9,6 @@
 apps:
   - repo: LjLies/EarthPing
   - repo: LjLies/WakeBridge
-  - repo: LjLies/fryer-clock
+  # Not published yet. To add it, uncomment this line and restore
+  # metadata/io.github.ljlies.fryerclock.yml from Git history.
+  # - repo: LjLies/fryer-clock
