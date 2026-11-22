@@ -1,0 +1,26 @@
+Categories:
+  - Time
+  - Sports & Health
+AuthorName: LjL
+SourceCode: https://github.com/LjLies/WakeBridge
+IssueTracker: https://github.com/LjLies/WakeBridge/issues
+Changelog: https://github.com/LjLies/WakeBridge/releases
+
+Name: WakeBridge
+Summary: An alarm that wakes you after a set amount of actual sleep
+Description: |-
+  An alarm that wakes you after a set amount of actual sleep, not after a set time.
+
+  WakeBridge works with Gadgetbridge and a watch or band that reports when you fall asleep and
+  wake up (for example Amazfit/Mi Band, Zepp OS and Xiaomi devices). Gadgetbridge tells
+  WakeBridge when you fall asleep and wake up; WakeBridge counts the time asleep and has
+  Gadgetbridge set the alarm on the watch. Brief awakenings pause the count.
+
+  * Separate settings for naps and nights, with a timeline of the day.
+  * Nights never ring later than the night's end.
+  * A fail-safe alarm, and a backup alarm on the phone in case the watch one is missed.
+
+  In English and Italian. Requires Gadgetbridge.
+
+# Only APKs signed with LjL's release key (CN=LjL) are published.
+AllowedAPKSigningKeys: d89130456f9839955a2ea4ba5999cb0fffd881c3933142803b950b8ee8bbf549

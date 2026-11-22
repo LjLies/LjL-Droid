@@ -1,0 +1,29 @@
+Categories:
+  - Science & Education
+License: GPL-3.0-or-later
+AuthorName: LjL
+SourceCode: https://github.com/LjLies/EarthPing
+IssueTracker: https://github.com/LjLies/EarthPing/issues
+Changelog: https://github.com/LjLies/EarthPing/releases
+
+Name: EarthPing
+Summary: Earthquake early warnings and public alerts, without Google Play Services
+Description: |-
+  Earthquake early warnings and public alerts for Android, without Google Play Services.
+
+  EarthPing listens to the push broadcasts Google sends for the Android Earthquake Alerts
+  System. It talks to Google's push server directly, so it works with microG or with no Google
+  software at all.
+
+  * When an alert arrives for your area, it sounds a siren at full volume and shows a
+    full-screen warning with a map of the epicentre and the P- and S-wave fronts, counting down
+    the seconds until the strong shaking arrives.
+  * You can also watch up to three other places and get a normal notification about
+    earthquakes there.
+
+  EarthPing is unofficial: it relies on an undocumented Google service that can change or stop
+  at any time, and it is not a certified warning system. Keep your phone's official emergency
+  alerts enabled.
+
+# Only APKs signed with LjL's release key (CN=LjL) are published.
+AllowedAPKSigningKeys: d89130456f9839955a2ea4ba5999cb0fffd881c3933142803b950b8ee8bbf549

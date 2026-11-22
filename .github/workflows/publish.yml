@@ -1,0 +1,117 @@
+# Builds the F-Droid repository from the apps' GitHub Releases and publishes it on GitHub Pages.
+#
+# Runs every hour, on pushes to main and on demand (Actions → Publish → Run workflow). A scheduled
+# run that finds nothing new stops before deploying.
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer one waits instead of cancelling a running one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}repo/
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install fdroidserver and apksigner
+        run: |
+          sudo apt-get install -y -q apksigner
+          pip install -q fdroidserver==2.4.5
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      # GITHUB_TOKEN can read public repositories' releases. Private ones need APPS_TOKEN.
+      - name: Download the apps' released APKs
+        env:
+          GH_TOKEN: ${{ secrets.APPS_TOKEN || github.token }}
+        run: python scripts/fetch_releases.py
+
+      # The published state.txt records what the live repository was built from.
+      - name: Check for changes
+        id: state
+        env:
+          SITE: ${{ steps.pages.outputs.base_url }}
+        run: |
+          state=$( (cat sources.txt; git rev-parse 'HEAD^{tree}') | sha256sum | cut -d' ' -f1)
+          echo "state=$state" >> "$GITHUB_OUTPUT"
+          live=$(curl -fsSL "$SITE/state.txt" 2>/dev/null || true)
+          if [ "$GITHUB_EVENT_NAME" = schedule ] && [ "$state" = "$live" ]; then
+            echo "Nothing new since the last deployment."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Repository signing key
+        if: steps.state.outputs.skip != 'true'
+        env:
+          FDROID_KEYSTORE: ${{ secrets.FDROID_KEYSTORE }}
+        run: |
+          if [ -z "$FDROID_KEYSTORE" ]; then
+            echo "::error::The FDROID_KEYSTORE and FDROID_KEYSTORE_PASS secrets are missing (see README.md)."
+            exit 1
+          fi
+          echo "$FDROID_KEYSTORE" | base64 -d > "$RUNNER_TEMP/fdroid.p12"
+          echo "FDROID_KEYSTORE_FILE=$RUNNER_TEMP/fdroid.p12" >> "$GITHUB_ENV"
+
+      # --use-date-from-apk: each version's date is its release's (set by fetch_releases.py), so
+      # rebuilding the index from scratch doesn't make old versions look new.
+      - name: Build the repository index
+        if: steps.state.outputs.skip != 'true'
+        env:
+          FDROID_KEYSTORE_PASS: ${{ secrets.FDROID_KEYSTORE_PASS }}
+        run: |
+          chmod 600 config.yml
+          fdroid update --rename-apks --use-date-from-apk
+
+      - name: Remove the signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/fdroid.p12"
+
+      - name: Assemble the site
+        if: steps.state.outputs.skip != 'true'
+        env:
+          STATE: ${{ steps.state.outputs.state }}
+        run: |
+          mkdir site
+          cp -r repo site/repo
+          [ -d archive ] && cp -r archive site/archive
+          echo "$STATE" > site/state.txt
+          # fdroid's own page, with the QR code and "add repository" link, is repo/index.html
+          echo '<!DOCTYPE html><meta http-equiv="refresh" content="0; url=repo/"><a href="repo/">LjL-Droid</a>' > site/index.html
+          touch site/.nojekyll
+          {
+            echo "### Add to F-Droid"
+            grep -o 'https://fdroid.link/[^"]*' repo/index.html | head -1
+            echo "### APKs"
+            ls repo/*.apk | sed 's|.*/|- |'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.state.outputs.skip != 'true'
+        with:
+          path: site
+
+      - id: deploy
+        if: steps.state.outputs.skip != 'true'
+        uses: actions/deploy-pages@v4

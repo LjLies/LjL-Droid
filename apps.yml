@@ -1,0 +1,12 @@
+# The apps in the repository: one GitHub repository each. LjL-Droid publishes the signed APKs
+# attached to each repository's GitHub Releases (drafts and pre-releases are skipped).
+#
+#   repo:  owner/name on GitHub
+#   keep:  how many of the newest releases to offer (default 3; older ones stay downloadable
+#          from GitHub, just not from F-Droid)
+#
+# Private repositories need the APPS_TOKEN secret (see README.md).
+apps:
+  - repo: LjLies/EarthPing
+  - repo: LjLies/WakeBridge
+  - repo: LjLies/fryer-clock

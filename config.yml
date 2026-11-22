@@ -1,0 +1,16 @@
+# fdroidserver configuration. The signing key and its password come from the repository secrets
+# (see README.md), so nothing here is secret.
+repo_url: https://ljlies.github.io/LjL-Droid/repo
+repo_name: LjL-Droid
+repo_description: >-
+  LjL's Android apps: EarthPing, WakeBridge and Fryer Clock. Add this repository to F-Droid
+  (or Droid-ify, Neo Store) to get updates automatically.
+
+# Older versions than this many per app go to the archive repository.
+archive_older: 3
+
+repo_keyalias: repo
+keystore: {env: FDROID_KEYSTORE_FILE}
+keystorepass: {env: FDROID_KEYSTORE_PASS}
+keypass: {env: FDROID_KEYSTORE_PASS}
+keydname: CN=LjL-Droid
