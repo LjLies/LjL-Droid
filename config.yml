@@ -3,7 +3,7 @@
 repo_url: https://ljlies.github.io/LjL-Droid/repo
 repo_name: LjL-Droid
 repo_description: >-
-  LjL's Android apps: EarthPing, WakeBridge and Fryer Clock. Add this repository to F-Droid
+  LjL's Android apps: EarthPing and WakeBridge. Add this repository to F-Droid
   (or Droid-ify, Neo Store) to get updates automatically.
 
 # Older versions than this many per app go to the archive repository.
