@@ -6,6 +6,10 @@ repo_description: >-
   LjL's Android apps: EarthPing and WakeBridge. Add this repository to F-Droid
   (or Droid-ify, Neo Store) to get updates automatically.
 
+# The repository's icon (LjL's GitHub avatar), shown in F-Droid's list of repositories.
+repo_icon: icon.png
+archive_icon: icon.png
+
 # Older versions than this many per app go to the archive repository.
 archive_older: 3
 
