@@ -6,17 +6,25 @@ Reads apps.yml. Each APK gets its release's publication date as its file date, s
 the next. Writes sources.txt, one line per downloaded asset, which the workflow uses to tell
 whether anything changed since the last deployment.
 
+For each app's newest release, also copies the app's fastlane metadata (fastlane/metadata/android/
+<locale>/: title, descriptions, changelogs, screenshots) from that release's tag into
+metadata/<applicationId>/<locale>/, where `fdroid update` picks it up. Texts found there take
+precedence over the ones in metadata/<applicationId>.yml.
+
 Needs GH_TOKEN (any token that can read the repositories' releases).
 """
 
+import io
 import json
 import os
 import sys
+import tarfile
 import urllib.request
 from datetime import datetime
 from pathlib import Path
 
 import yaml
+from fdroidserver import common
 
 API = "https://api.github.com"
 REPO_DIR = Path("repo")
@@ -33,6 +41,30 @@ def request(url, accept="application/vnd.github+json"):
 def releases(repo):
     with request(f"{API}/repos/{repo}/releases?per_page=100") as response:
         return json.load(response)
+
+
+def copy_fastlane_metadata(repo, tag, apk):
+    """Copy fastlane/metadata/android/ at `tag` into metadata/<applicationId>/."""
+    app_id = common.get_apk_id(str(apk))[0]
+    target = Path("metadata") / app_id
+    prefix = "fastlane/metadata/android/"
+    copied = 0
+    with request(f"{API}/repos/{repo}/tarball/{tag}") as response:
+        archive = tarfile.open(fileobj=io.BytesIO(response.read()), mode="r:gz")
+    for member in archive.getmembers():
+        # Paths in the archive start with a "<owner>-<repo>-<commit>/" folder
+        path = member.name.split("/", 1)[-1]
+        if not member.isfile() or not path.startswith(prefix):
+            continue
+        relative = Path(path[len(prefix):])
+        if relative.is_absolute() or ".." in relative.parts:
+            continue
+        destination = target / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(archive.extractfile(member).read())
+        copied += 1
+    if copied:
+        print(f"{repo} {tag}: {copied} fastlane metadata files")
 
 
 def wanted(asset):
@@ -78,6 +110,8 @@ def main():
                     target.write_bytes(response.read())
                 os.utime(target, (date.timestamp(), date.timestamp()))
                 sources.append(f"{repo} {release['tag_name']} {asset['id']} {asset['updated_at']}")
+            if found == 1:  # the newest release
+                copy_fastlane_metadata(repo, release["tag_name"], target)
         if not found:
             print(f"::notice::{repo}: no release with a signed APK yet")
 
